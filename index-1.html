@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="as">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knowledge Lamp - Study App</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; }
+        body { background-color: #f0f4f8; color: #2d3748; padding-bottom: 40px; }
+        
+        /* Top Bar */
+        .navbar { background: #1a365d; color: white; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+        .navbar h1 { font-size: 18px; display: flex; align-items: center; gap: 8px; }
+        .admin-btn { background: #ecc94b; color: #1a202c; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 13px; cursor: pointer; }
+
+        .container { max-width: 500px; margin: 0 auto; padding: 15px; }
+
+        /* Card & Login Form */
+        .card { background: white; padding: 22px; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 18px; }
+        h2 { text-align: center; margin-bottom: 18px; color: #1a365d; font-size: 20px; }
+        .form-group { margin-bottom: 14px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+        input, select, textarea { width: 100%; padding: 11px; border: 1px solid #cbd5e0; border-radius: 8px; font-size: 15px; outline: none; }
+        input:focus, select:focus, textarea:focus { border-color: #3182ce; }
+        .btn { width: 100%; padding: 12px; background: #2b6cb0; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 8px; }
+        .btn-green { background: #2f855a; }
+
+        /* Profile Banner */
+        .profile-card { background: linear-gradient(135deg, #2b6cb0, #1a365d); color: white; padding: 18px; border-radius: 14px; margin-bottom: 18px; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        .profile-card h3 { font-size: 17px; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 6px; }
+        .profile-info p { margin: 4px 0; font-size: 14px; }
+        .logout-btn { position: absolute; top: 15px; right: 15px; background: #e53e3e; color: white; border: none; padding: 5px 10px; border-radius: 5px; font-size: 12px; cursor: pointer; }
+
+        /* Ad Slideshow */
+        .slider-box { border-radius: 12px; overflow: hidden; margin-bottom: 20px; box-shadow: 0 3px 10px rgba(0,0,0,0.1); min-height: 120px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea, #764ba2); color: white; text-align: center; padding: 15px; }
+        .slide-title { font-size: 17px; font-weight: bold; margin-bottom: 5px; }
+        .slide-desc { font-size: 14px; opacity: 0.95; }
+
+        /* Category Grid */
+        .section-title { font-size: 17px; font-weight: bold; color: #1a365d; margin-bottom: 12px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .cat-card { background: white; padding: 16px; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); cursor: pointer; border-bottom: 4px solid #3182ce; }
+        .cat-icon { font-size: 32px; margin-bottom: 8px; display: block; }
+        .cat-card h4 { font-size: 15px; color: #2d3748; }
+        .cat-card p { font-size: 11px; color: #718096; margin-top: 4px; }
+
+        /* Notes Items */
+        .back-btn { background: #4a5568; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-size: 14px; cursor: pointer; margin-bottom: 15px; }
+        .note-card { background: white; padding: 16px; border-radius: 12px; margin-bottom: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); border-left: 5px solid #2b6cb0; }
+        .note-card h4 { font-size: 16px; color: #1a365d; margin-bottom: 6px; }
+        .note-card p { font-size: 14px; color: #4a5568; white-space: pre-line; line-height: 1.5; margin-bottom: 10px; }
+        .note-card img { width: 100%; border-radius: 8px; margin-bottom: 10px; max-height: 250px; object-fit: contain; background: #edf2f7; }
+        .dl-btn { display: inline-block; background: #2f855a; color: white; text-decoration: none; padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: bold; border: none; cursor: pointer; }
+        .del-btn { background: #e53e3e; color: white; border: none; padding: 6px 10px; border-radius: 5px; font-size: 12px; cursor: pointer; float: right; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <h1>🪔 Knowledge Lamp</h1>
+        <button class="admin-btn" onclick="openAdminLogin()">🔐 এডমিন</button>
+    </div>
+
+    <div class="container">
+        <!-- ১. লগ-ইন পেজ -->
+        <div id="loginPage" class="card">
+            <h2>👋 স্বাগতম! লগ-ইন কৰক</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>আপোনাৰ নাম (Name):</label>
+                    <input type="text" id="stuName" placeholder="সম্পূৰ্ণ নাম লিখক" required>
+                </div>
+                <div class="form-group">
+                    <label>বয়স (Age):</label>
+                    <input type="number" id="stuAge" placeholder="আপোনাৰ বয়স" required>
+                </div>
+                <div class="form-group">
+                    <label>জিলা (District):</label>
+                    <input type="text" id="stuDistrict" placeholder="জিলাৰ নাম লিখক" required>
+                </div>
+                <div class="form-group">
+                    <label>পাছৱৰ্ড (Password):</label>
+                    <input type="password" id="stuPass" placeholder="যিকোনো পাছৱৰ্ড দিয়ক" required>
+                </div>
+                <button type="submit" class="btn">লগ-ইন কৰক (Login)</button>
+            </form>
+        </div>
+
+        <!-- ২. মেইন ডেশ্বব'ৰ্ড -->
+        <div id="mainPage" class="hidden">
+            <div class="profile-card">
+                <button class="logout-btn" onclick="logoutStudent()">লগ-আউট</button>
+                <h3>👤 শিক্ষাৰ্থীৰ প্ৰফাইল</h3>
+                <div class="profile-info">
+                    <p><strong>নাম:</strong> <span id="pName"></span></p>
+                    <p><strong>বয়স:</strong> <span id="pAge"></span> বছৰ</p>
+                    <p><strong>জিলা:</strong> <span id="pDist"></span></p>
+                </div>
+            </div>
+
+            <div class="section-title">📢 বিশেষ ঘোষণা / বিজ্ঞাপন:</div>
+            <div class="slider-box" id="adSlider">
+                <div class="slide-content">
+                    <div class="slide-title">Knowledge Lamp লৈ স্বাগতম!</div>
+                    <div class="slide-desc">ইয়াত সকলো পঢ়া-শুনাৰ নোটছ আৰু PDF বিনামূলীয়াকৈ পাব।</div>
+                </div>
+            </div>
+
+            <div class="section-title">📚 পঢ়া-শুনাৰ বিষয়সমূহ:</div>
+            <div class="grid">
+                <div class="cat-card" onclick="openCategory('Grammar')" style="border-color: #dd6b20;">
+                    <span class="cat-icon">📖</span>
+                    <h4>Grammar</h4>
+                    <p>ইংৰাজী আৰু অসমীয়া</p>
+                </div>
+                <div class="cat-card" onclick="openCategory('PDF Notes')" style="border-color: #e53e3e;">
+                    <span class="cat-icon">📄</span>
+                    <h4>PDF Notes</h4>
+                    <p>ই-বুক আৰু নোটছ</p>
+                </div>
+                <div class="cat-card" onclick="openCategory('Short Formula')" style="border-color: #805ad5;">
+                    <span class="cat-icon">➗</span>
+                    <h4>Short Formula</h4>
+                    <p>চমু সূত্ৰ আৰু ট্ৰিকছ</p>
+                </div>
+                <div class="cat-card" onclick="openCategory('Photo Notes')" style="border-color: #38a169;">
+                    <span class="cat-icon">🖼️</span>
+                    <h4>Photo Notes</h4>
+                    <p>ফটো আৰু চাৰ্ট</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ৩. বিভাগ পেজ -->
+        <div id="categoryPage" class="hidden">
+            <button class="back-btn" onclick="backToMain()">⬅ উভতি যাওক</button>
+            <h3 class="section-title" id="catTitle">বিষয়</h3>
+            <div id="notesList">লোড হৈ আছে...</div>
+        </div>
+
+        <!-- এডমিন লগ-ইন -->
+        <div id="adminLoginPage" class="hidden">
+            <button class="back-btn" onclick="backToMain()">⬅ উভতি যাওক</button>
+            <div class="card">
+                <h2>🔐 এডমিন লগ-ইন</h2>
+                <div class="form-group"><label>ইমেইল:</label><input type="email" id="adminEmail" autocomplete="username"></div>
+                <div class="form-group"><label>পাছৱৰ্ড:</label><input type="password" id="adminPass" autocomplete="current-password"></div>
+                <button class="btn" onclick="adminLogin()">লগ-ইন কৰক</button>
+            </div>
+        </div>
+
+        <!-- ৪. এডমিন পেনেল -->
+        <div id="adminPage" class="hidden">
+            <button class="back-btn" onclick="backToMain()">⬅ এডমিন লগ-আউট</button>
+            
+            <div class="card">
+                <h2>⚙️ এডমিন পেনেল</h2>
+                <h4 style="margin:12px 0 8px 0; color:#2b6cb0;">➕ নতুন নোটছ / PDF / ফটো আপলোড কৰক:</h4>
+                <div class="form-group">
+                    <label>বিভাগ বাছনি কৰক:</label>
+                    <select id="noteCat">
+                        <option value="Grammar">Grammar (ব্যাকৰণ)</option>
+                        <option value="PDF Notes">PDF Notes</option>
+                        <option value="Short Formula">Short Formula</option>
+                        <option value="Photo Notes">Photo Notes</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>শিৰোনাম (Title):</label>
+                    <input type="text" id="noteTitle" placeholder="যেনে: Tense ৰ সহজ নিয়ম">
+                </div>
+                <div class="form-group">
+                    <label>বিৱৰণ বা নোটছ লিখক:</label>
+                    <textarea id="noteDesc" rows="3" placeholder="নোটছখনি লিখক..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Google Drive ৰ PDF লিংক (যদি আছে):</label>
+                    <input type="url" id="noteLink" placeholder="https://drive.google.com/...">
+                </div>
+                <div class="form-group">
+                    <label>অথবা মোবাইলৰ পৰা ফটো আপলোড কৰক:</label>
+                    <input type="file" id="noteFile" accept="image/*">
+                </div>
+                <button class="btn btn-green" onclick="uploadNote()">✅ পাব্লিছ কৰক</button>
+            </div>
+
+            <div class="card">
+                <h4 style="margin-bottom:10px; color:#805ad5;">📢 স্লাইডশ্ব' বিজ্ঞাপন যোগ কৰক:</h4>
+                <div class="form-group">
+                    <label>বিজ্ঞাপনৰ হেডিং:</label>
+                    <input type="text" id="adTitle" placeholder="যেনে: ₹30 ত নতুন ই-বুক!">
+                </div>
+                <div class="form-group">
+                    <label>বিৱৰণ:</label>
+                    <input type="text" id="adDesc" placeholder="বিৱৰণ লিখক...">
+                </div>
+                <button class="btn" onclick="uploadAd()">📢 বিজ্ঞাপন আপলোড কৰক</button>
+                <div id="adminAdList" style="margin-top:10px;"></div>
+            </div>
+
+            <div class="card">
+                <h4 style="margin-bottom:8px;">👥 জইন হোৱা শিক্ষাৰ্থীসকল (<span id="stuCount">0</span>):</h4>
+                <div id="studentList" style="max-height:200px; overflow-y:auto; font-size:13px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK & Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAk-vaCO16N_b0fAfMyPUyWHuihVZhtyJI",
+            authDomain: "pdedustudy-4edbe.firebaseapp.com",
+            databaseURL: "https://pdedustudy-4edbe-default-rtdb.firebaseio.com",
+            projectId: "pdedustudy-4edbe",
+            storageBucket: "pdedustudy-4edbe.appspot.com",
+            messagingSenderId: "600563469330",
+            appId: "1:600563469330:web:16fb221c0742b7fcc81ccb"
+        };
+
+        let db, auth, unsubStudents = null, isAdmin = false, allNotes = [], allAds = [], adIndex = 0;
+
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            startLiveListeners();
+            onAuthStateChanged(auth, (user) => {
+                isAdmin = !!user;
+                if (user) startStudentListener(); else stopStudentListener();
+            });
+        } catch (err) { console.error(err); }
+
+        window.onload = () => { if (localStorage.getItem("stuName")) showMainDashboard(); };
+
+        document.getElementById("loginForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const name = document.getElementById("stuName").value.trim();
+            const age = document.getElementById("stuAge").value.trim();
+            const dist = document.getElementById("stuDistrict").value.trim();
+
+            localStorage.setItem("stuName", name);
+            localStorage.setItem("stuAge", age);
+            localStorage.setItem("stuDist", dist);
+
+            if (db) {
+                try {
+                    await addDoc(collection(db, "students"), { name, age, district: dist, date: new Date().toLocaleDateString() });
+                } catch (e) { console.error(e); }
+            }
+            showMainDashboard();
+        });
+
+        function showMainDashboard() {
+            document.getElementById("loginPage").classList.add("hidden");
+            document.getElementById("categoryPage").classList.add("hidden");
+            document.getElementById("adminPage").classList.add("hidden");
+            document.getElementById("adminLoginPage").classList.add("hidden");
+            document.getElementById("mainPage").classList.remove("hidden");
+
+            document.getElementById("pName").innerText = localStorage.getItem("stuName");
+            document.getElementById("pAge").innerText = localStorage.getItem("stuAge");
+            document.getElementById("pDist").innerText = localStorage.getItem("stuDist");
+        }
+
+        function startLiveListeners() {
+            if (!db) return;
+            onSnapshot(collection(db, "notes"), (snap) => {
+                allNotes = [];
+                snap.forEach(d => allNotes.push({ id: d.id, ...d.data() }));
+            });
+            onSnapshot(collection(db, "ads"), (snap) => {
+                allAds = [];
+                snap.forEach(d => allAds.push({ id: d.id, ...d.data() }));
+                renderAdminAds();
+            });
+        }
+
+        function startStudentListener() {
+            if (!db || unsubStudents) return;
+            unsubStudents = onSnapshot(collection(db, "students"), (snap) => {
+                const list = document.getElementById("studentList");
+                document.getElementById("stuCount").innerText = snap.size;
+                list.innerHTML = "";
+                snap.forEach(d => {
+                    const s = d.data();
+                    list.innerHTML += `<div style="padding:5px; border-bottom:1px solid #eee;">👤 <b>${s.name}</b> (${s.age} yrs) - 📍 ${s.district}</div>`;
+                });
+            }, (err) => console.error(err));
+        }
+        function stopStudentListener() {
+            if (unsubStudents) { unsubStudents(); unsubStudents = null; }
+            const l = document.getElementById("studentList");
+            if (l) l.innerHTML = "";
+        }
+
+        setInterval(() => {
+            if (allAds.length === 0) return;
+            adIndex = (adIndex + 1) % allAds.length;
+            const ad = allAds[adIndex];
+            document.getElementById("adSlider").innerHTML = `
+                <div class="slide-content">
+                    <div class="slide-title">📢 ${ad.title}</div>
+                    <div class="slide-desc">${ad.desc}</div>
+                </div>
+            `;
+        }, 4000);
+
+        window.openCategory = (catName) => {
+            document.getElementById("mainPage").classList.add("hidden");
+            document.getElementById("categoryPage").classList.remove("hidden");
+            document.getElementById("catTitle").innerText = "📚 " + catName;
+
+            const list = document.getElementById("notesList");
+            const filtered = allNotes.filter(n => n.category === catName);
+
+            if (filtered.length === 0) {
+                list.innerHTML = `<div class="card" style="text-align:center; color:#718096;">বৰ্তমান ইয়াত কোনো নোটছ নাই।</div>`;
+                return;
+            }
+
+            list.innerHTML = "";
+            filtered.forEach(n => {
+                let mediaHtml = n.imageData ? `<img src="${n.imageData}">` : "";
+                let dlHtml = "";
+                if (n.link) dlHtml += `<a href="${n.link}" target="_blank" class="dl-btn">📥 PDF / ফাইল ডাউনলোড কৰক</a> `;
+                if (n.imageData) dlHtml += `<a href="${n.imageData}" download="note.png" class="dl-btn">📥 ফটো ডাউনলোড কৰক</a> `;
+                if (!n.link && !n.imageData) dlHtml += `<button class="dl-btn" onclick="downloadTextNote('${n.title}', \`${n.desc}\`)">📥 নোটছ ডাউনলোড কৰক</button>`;
+
+                const delBtn = isAdmin ? `<button class="del-btn" onclick="deleteItem('notes', '${n.id}')">🗑 ডিলিট</button>` : "";
+                list.innerHTML += `
+                    <div class="note-card">
+                        ${delBtn}
+                        <h4>${n.title}</h4>
+                        <p>${n.desc}</p>
+                        ${mediaHtml}
+                        <div style="margin-top:8px;">${dlHtml}</div>
+                    </div>
+                `;
+            });
+        };
+
+        window.downloadTextNote = (title, text) => {
+            const blob = new Blob([title + "\n\n" + text], { type: "text/plain;charset=utf-8" });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = title + ".txt";
+            a.click();
+        };
+
+        const ALL_PAGES = ["loginPage", "mainPage", "categoryPage", "adminPage", "adminLoginPage"];
+        function showPage(id) {
+            ALL_PAGES.forEach(x => document.getElementById(x).classList.add("hidden"));
+            document.getElementById(id).classList.remove("hidden");
+        }
+
+        window.openAdminLogin = () => showPage(isAdmin ? "adminPage" : "adminLoginPage");
+
+        window.adminLogin = async () => {
+            const email = document.getElementById("adminEmail").value.trim().replace(/\s+/g, "");
+            const pass = document.getElementById("adminPass").value;
+            if (!email || !pass) return alert("ইমেইল আৰু পাছৱৰ্ড দুয়োটা লিখক!");
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+                document.getElementById("adminPass").value = "";
+                isAdmin = true;
+                showPage("adminPage");
+            } catch (e) {
+                const msgs = {
+                    "auth/invalid-credential": "ইমেইল বা পাছৱৰ্ড ভুল!",
+                    "auth/wrong-password": "পাছৱৰ্ড ভুল!",
+                    "auth/user-not-found": "এই ইমেইলৰ ইউজাৰ নাই!",
+                    "auth/invalid-email": "ইমেইলৰ বানান ভুল!",
+                    "auth/too-many-requests": "বহুবাৰ ভুল চেষ্টা। কিছুসময় পাছত চেষ্টা কৰক।",
+                    "auth/network-request-failed": "ইণ্টাৰনেট সমস্যা!",
+                    "auth/operation-not-allowed": "Firebase ত Email/Password অন কৰা নাই!"
+                };
+                alert("❌ " + (msgs[e.code] || "লগ-ইন হোৱা নাই") + "\n(কোড: " + e.code + ")");
+            }
+        };
+
+        window.uploadNote = async () => {
+            const category = document.getElementById("noteCat").value;
+            const title = document.getElementById("noteTitle").value.trim();
+            const desc = document.getElementById("noteDesc").value.trim();
+            const link = document.getElementById("noteLink").value.trim();
+            const fileInput = document.getElementById("noteFile");
+
+            if (!title) return alert("শিৰোনাম (Title) লিখক!");
+            let imageData = "";
+            if (fileInput.files.length > 0) imageData = await toBase64(fileInput.files[0]);
+
+            if (db) {
+                try {
+                    await addDoc(collection(db, "notes"), { category, title, desc, link, imageData, createdAt: Date.now() });
+                    alert("✅ সফলভাৱে আপলোড হ'ল আৰু সকলোলৈ গুচি গ'ল!");
+                } catch (e) { return alert("❌ আপলোড হোৱা নাই: " + e.message); }
+            }
+            document.getElementById("noteTitle").value = "";
+            document.getElementById("noteDesc").value = "";
+            document.getElementById("noteLink").value = "";
+            fileInput.value = "";
+        };
+
+        window.uploadAd = async () => {
+            const title = document.getElementById("adTitle").value.trim();
+            const desc = document.getElementById("adDesc").value.trim();
+            if (!title) return alert("বিজ্ঞাপনৰ হেডিং লিখক!");
+            if (db) {
+                try {
+                    await addDoc(collection(db, "ads"), { title, desc });
+                    alert("✅ বিজ্ঞাপন যোগ হ'ল!");
+                } catch (e) { return alert("❌ হোৱা নাই: " + e.message); }
+            }
+            document.getElementById("adTitle").value = "";
+            document.getElementById("adDesc").value = "";
+        };
+
+        function renderAdminAds() {
+            const box = document.getElementById("adminAdList");
+            if (!box) return;
+            box.innerHTML = "";
+            allAds.forEach(a => {
+                box.innerHTML += `<div style="padding:5px; background:#edf2f7; margin-top:4px; border-radius:4px; font-size:12px;">
+                    📢 <b>${a.title}</b> <button class="del-btn" onclick="deleteItem('ads', '${a.id}')" style="padding:2px 6px; font-size:10px;">ডিলিট</button></div>`;
+            });
+        }
+
+        window.deleteItem = async (col, id) => {
+            if (!isAdmin || !db) return;
+            if (!confirm("সচাকৈয়ে ডিলিট কৰিব বিচাৰে নেকি?")) return;
+            try {
+                await deleteDoc(doc(db, col, id));
+                if (col === "notes") {
+                    const t = document.getElementById("catTitle").innerText.replace("📚 ", "");
+                    setTimeout(() => { if (!document.getElementById("categoryPage").classList.contains("hidden")) openCategory(t); }, 400);
+                }
+            } catch (e) { alert("❌ ডিলিট হোৱা নাই: " + e.message); }
+        };
+
+        // ফটো সৰু কৰি base64 লৈ ৰূপান্তৰ (Firestore ৰ ১MB সীমাৰ বাবে)
+        function toBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onerror = () => reject(new Error("ফাইল পঢ়িব পৰা নগ'ল"));
+                reader.onload = () => {
+                    const img = new Image();
+                    img.onerror = () => reject(new Error("ফটো নহয়"));
+                    img.onload = () => {
+                        const max = 900;
+                        const scale = Math.min(1, max / Math.max(img.width, img.height));
+                        const c = document.createElement("canvas");
+                        c.width = Math.round(img.width * scale);
+                        c.height = Math.round(img.height * scale);
+                        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+                        let q = 0.7, out = c.toDataURL("image/jpeg", q);
+                        while (out.length > 900000 && q > 0.3) { q -= 0.1; out = c.toDataURL("image/jpeg", q); }
+                        resolve(out);
+                    };
+                    img.src = reader.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        window.logoutStudent = () => {
+            localStorage.removeItem("stuName");
+            localStorage.removeItem("stuAge");
+            localStorage.removeItem("stuDist");
+            showPage("loginPage");
+            document.getElementById("loginForm").reset();
+        };
+
+        window.backToMain = () => {
+            if (auth && isAdmin) signOut(auth);
+            isAdmin = false;
+            if (localStorage.getItem("stuName")) {
+                showMainDashboard();
+            } else {
+                showPage("loginPage");
+            }
+        };
+    </script>
+</body>
+</html>
